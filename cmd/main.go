@@ -21,17 +21,23 @@ func main() {
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM)
 
+	//канал для ошибок запуска сервера
+	serverErr := make(chan error, 1)
+
 	// Запуск сервера в отдельной горутине
 	go func() {
 		if err := server.Run(); err != nil {
-			log.Fatalf("Failed to start server: %v", err)
+			serverErr <- err
 		}
 	}()
 
-	// Выход
-	<-exit
-
-	log.Println("Shutting down server...")
+	// Ожидаем сигнал завершения или ошибку сервера
+	select {
+	case <-exit:
+		log.Println("Shutting down server...")
+	case err := <-serverErr:
+		log.Printf("Server error: %v", err)
+	}
 
 	// Завершаем работу с таймаутом
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 2*time.Second)

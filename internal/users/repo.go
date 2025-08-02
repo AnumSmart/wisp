@@ -46,6 +46,7 @@ func (r *UserRepository) AddUser(ctx context.Context, email, hashedPass string, 
 		Role:     role,
 		IsActive: is_active,
 	}
+	log.Panicln(newUser.Email)
 	query := `INSERT INTO users (email, hashed_pass, user_role, is_active) VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING`
 	res, err := r.Database.GetPool().Exec(ctx, query, newUser.Email, newUser.HashPass, newUser.Role, newUser.IsActive)
 	if err != nil {
