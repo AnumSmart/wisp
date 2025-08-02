@@ -46,7 +46,10 @@ func (s *AuthService) Register(ctx context.Context, email, password string) erro
 		return err
 	}
 
-	isInBase, _ := s.repo.CheckIfInBaseByEmail(ctx, email)
+	isInBase, err := s.repo.CheckIfInBaseByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
 
 	if isInBase {
 		return errors.New("user with such Email is in base")

@@ -53,12 +53,6 @@ func NewServer(ctx context.Context) *Server {
 	profileService := profile.NewProfileService(profileRepository, userRepository)
 	ordersHandler := profile.NewProfileHandler(profileService)
 
-	// Создаём админа
-	err = users.InitAdmin(ctx, userRepository)
-	if err != nil {
-		log.Fatal("Failed to create admin user: ", err)
-	}
-
 	// создаём экземпляр роутера
 	router := gin.Default()
 

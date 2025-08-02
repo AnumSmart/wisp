@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"simple_gin_server/internal/users"
 	"syscall"
 	"time"
 )
@@ -16,6 +17,12 @@ func main() {
 
 	// Инициализируем сервер
 	server := NewServer(ctx)
+
+	// Проверяем и создаем администратора перед запуском сервера
+	if err := ensureAdminExists(ctx, server); err != nil {
+		log.Printf("Admin initialization error: %v", err)
+		// Не прерываем работу, но логируем ошибку
+	}
 
 	// механизм gracefull shutdown
 	exit := make(chan os.Signal, 1)
@@ -48,4 +55,15 @@ func main() {
 	}
 
 	log.Println("Server exited properly")
+}
+
+func ensureAdminExists(ctx context.Context, server *Server) error {
+	// Проверяем обязательные переменные окружения
+	if os.Getenv("ADMIN_EMAIL") == "" || os.Getenv("ADMIN_PASSWORD") == "" {
+		log.Println("Warning: ADMIN_EMAIL or ADMIN_PASSWORD not set, admin user won't be created")
+		return nil
+	}
+
+	userRepo := users.NewUserRepository(server.db)
+	return userRepo.EnsureAdminExists(ctx)
 }

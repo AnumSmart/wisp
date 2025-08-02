@@ -37,7 +37,7 @@ const (
 )
 
 func LoadConfig() *Config {
-	err := godotenv.Load("c:\\Son_Alex\\Go_projects\\e-commerce_proj\\e-shop\\backend\\simple_gin_server\\.env")
+	err := godotenv.Load("c:\\Son_Alex\\Go_projects\\e-commerce_proj\\VVV\\V2_mobile\\wisp\\backend\\simple_gin_server\\.env")
 	if err != nil {
 		fmt.Println("Error loading .env file, using default config", err.Error())
 	}

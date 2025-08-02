@@ -8,3 +8,10 @@ type User struct {
 	Role         string
 	IsActive     bool
 }
+
+type AdminConfig struct {
+	AdminEmail string
+	HashedPass string
+	Role       string
+	Is_Active  bool
+}

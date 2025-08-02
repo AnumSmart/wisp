@@ -18,6 +18,7 @@ type UserRepoInterface interface {
 	CheckIfInBaseByEmail(ctx context.Context, email string) (bool, error)
 	AddRefreshToken(ctx context.Context, email, refreshToken string) error
 	ClearRefreshToken(ctx context.Context, claimsEmail string) error
+	EnsureAdminExists(ctx context.Context) error
 }
 
 type UserRepository struct {
@@ -46,7 +47,7 @@ func (r *UserRepository) AddUser(ctx context.Context, email, hashedPass string, 
 		Role:     role,
 		IsActive: is_active,
 	}
-	log.Panicln(newUser.Email)
+	log.Println(newUser.Email)
 	query := `INSERT INTO users (email, hashed_pass, user_role, is_active) VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING`
 	res, err := r.Database.GetPool().Exec(ctx, query, newUser.Email, newUser.HashPass, newUser.Role, newUser.IsActive)
 	if err != nil {
@@ -137,28 +138,22 @@ func (r *UserRepository) CheckIfInBaseByEmail(ctx context.Context, email string)
 	}
 
 	const query = `
-		SELECT id, email, hashed_pass
-		FROM users 
-		WHERE email = $1
-		LIMIT 1
-	`
-	var user User
-	err := r.Database.GetPool().QueryRow(ctx, query, email).Scan(
-		&user.Id,
-		&user.Email,
-		&user.HashPass,
-	)
+        SELECT EXISTS(
+            SELECT 1 
+            FROM users 
+            WHERE email = $1
+        )
+    `
+
+	var exists bool
+	err := r.Database.GetPool().QueryRow(ctx, query, email).Scan(&exists)
 
 	if err != nil {
-		log.Println(err.Error())
-		if errors.Is(err, pgx.ErrNoRows) {
-			log.Println(err.Error())
-			return false, nil
-		}
-		return false, fmt.Errorf("failed to query user by email: %w", err)
+		log.Printf("ошибка при запросе в базу на поиск по Email: %v", err)
+		return false, fmt.Errorf("failed to check user existence: %w", err)
 	}
 
-	return true, nil
+	return exists, nil
 }
 
 // добавляем поле refreshToken в базу по email (нужно держать refreshToken в БД)

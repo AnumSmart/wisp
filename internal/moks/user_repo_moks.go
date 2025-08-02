@@ -40,3 +40,8 @@ func (m *MockUserRepo) ClearRefreshToken(ctx context.Context, claimsEmail string
 	args := m.Called(ctx, claimsEmail)
 	return args.Error(0)
 }
+
+func (m *MockUserRepo) EnsureAdminExists(ctx context.Context) error {
+	args := m.Called(ctx)
+	return args.Error(0)
+}
